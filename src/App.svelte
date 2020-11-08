@@ -1,42 +1,96 @@
 <script>
+	import { onMount } from 'svelte';
+	import { fade, fly } from 'svelte/transition';
+	import { store } from './store';
+	import Snackbar from './components/Snackbar.svelte';
+	import Page from './components/Page.svelte';
+	import Thumbnail from './components/Thumbnail.svelte';
+	import Demo from './components/Demo.svelte';
+
 	// export let name = "Gabriel desde .svelte";
 	let data = [];
 	const API_KEY = "21f0594b";
 	const query = "Avengers";	
-		
-	(async() => {
-		// FETCH del las peliculas desde imbdapi
-		let response = await fetch(`http://www.omdbapi.com/?s=${query}&apikey=${API_KEY}&plot=full`);
-		response = await response.json();
-		// creo una copia de la instancia en response.Serach
-		response = [...response.Search].reduce((container, item) => {
-			const objMovie = {
-				id: item.imdbID,
-				url: item.Poster.replace('X300', ''),
-				title: item.Title
-			};
-			container.push(objMovie);
-			return container;
-		}, []); 
-		console.log(response);
-	})();		
 
+	let contador = 0;
+
+	// Ciclo di vita in svelte
+	onMount(async() => {
+		try {
+			// FETCH del las peliculas desde imbdapi
+			let response = await fetch(`http://www.omdbapi.com/?s=${query}&apikey=${API_KEY}&plot=full`);
+			response = await response.json();
+			// creo una copia de la instancia en response.Serach
+			response = [...response.Search].reduce((container, item) => {
+				const objMovie = {
+					id: item.imdbID,
+					url: item.Poster.replace('X300', ''),
+					title: item.Title
+				};
+				container.push(objMovie);
+				return container;
+			}, []); 
+			data = response;
+			// data = [];  //asi se genera un error
+			//no borrar
+			contador++;
+
+			// Actualizo mi store con la primera pelicula
+			const first = data[0];
+			store.update(state => ({
+				...state,
+				id: first.id,
+				url: first.url,
+				title: first.title
+			}));
+
+			console.log('----- Cargando Datos -------');
+			console.log(response);
+		} catch (error) {
+			console.error(error.message);
+			store.update(state => ({
+				...state,
+				show: true,
+				type: 'error',
+				title: error.message
+			}));
+		}
+		
+	});
+
+	
+
+	function saludo () {
+		console.log('click en componente');
+	}
+	
 </script>
 
 <main>
 	<!-- <h1>Hello {name}!</h1> -->
-	<div class="loader-container">
-		<div class="loader">
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
+	<Snackbar />
+	{#if data.length > 0}
+		<div transition:fade>
+			<Page/>
 		</div>
-	</div>
+	{:else}
+		<div class="loader-container">
+			<div class="loader">
+				<!-- Iteracion en svelte -->
+				{#each new Array(8) as miDiv}
+					<div></div>
+				{/each}
+			</div>
+			{#if false && contador === 1}
+				<div transition:fly="{{y: 100, duration: 1500}}">
+					<Demo key={ API_KEY} on:click={saludo}/>
+				</div>
+			{/if}
+
+		</div>
+	{/if}
+	
+	<Thumbnail {data} />
 </main>
 
 <style>
