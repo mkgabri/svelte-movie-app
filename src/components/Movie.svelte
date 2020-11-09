@@ -1,9 +1,14 @@
 <script>
-    import {store} from '../store';
-    export let movie;
-    function setMovie () {
-
-    }
+  import { store } from "../store";
+  export let movie;
+  function setMovie() {
+    store.update((state) => ({
+      ...state,
+      id: movie.id,
+      title: movie.title,
+      url: movie.url,
+    }));
+  }
 </script>
 
 <style>
@@ -24,21 +29,20 @@
     border: 2px solid transparent;
   }
   .selected img {
-    transition: height .7s ease;
+    transition: height 0.7s ease;
     height: 170px;
     border: 2px solid var(--color);
   }
   .not-selected img {
-    transition: height .7s ease-in-out;
+    transition: height 0.7s ease-in-out;
   }
 </style>
 
 <div class="Movie">
-    <figure
-      on:click={setMovie}
-      class:selected="{movie.id === $store.id}"
-      class:not-selected="{movie.id !== $store.id}"
-    >
-      <img src={movie.url} alt={movie.title}/>
-    </figure>
-  </div>
+  <figure
+    on:click={setMovie}
+    class:selected={movie.id === $store.id}
+    class:not-selected={movie.id !== $store.id}>
+    <img src={movie.url} alt={movie.title} />
+  </figure>
+</div>
